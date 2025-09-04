@@ -20,12 +20,11 @@ npm install
 
 ### Environment Setup
 
-1. The `.env` file has been created with your current configuration
+1. Create an `.env` file with your current configuration
 2. Verify your environment configuration:
    ```bash
    npm run check-env
    ```
-3. If needed, edit the `.env` file to update any values
 
 ### Environment Variables
 
