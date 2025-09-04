@@ -1,0 +1,22 @@
+{
+  "name": "pulsar-utility",
+  "version": "1.0.0",
+  "description": "A basic Pulsar consumer utility",
+  "main": "consumer.js",
+  "scripts": {
+    "start": "node consumer.js",
+    "consumer": "node consumer.js",
+    "check-env": "node check-env.js"
+  },
+  "dependencies": {
+    "pulsar-client": "^1.12.0",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "pulsar",
+    "consumer",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
