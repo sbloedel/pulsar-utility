@@ -1,6 +1,33 @@
 const Pulsar = require('pulsar-client');
 require('dotenv').config();
 
+// Global references for cleanup
+let globalConsumer = null;
+let globalClient = null;
+let shouldExit = false;
+
+async function cleanupResources() {
+  console.log('🧹 Cleaning up Pulsar resources...');
+  
+  try {
+    if (globalConsumer) {
+      console.log('📦 Unsubscribing consumer...');
+      await globalConsumer.unsubscribe();
+      console.log('✅ Consumer unsubscribed successfully');
+      globalConsumer = null;
+    }
+    
+    if (globalClient) {
+      console.log('🔌 Closing Pulsar client...');
+      await globalClient.close();
+      console.log('✅ Pulsar client closed successfully');
+      globalClient = null;
+    }
+  } catch (error) {
+    console.error('❌ Error during cleanup:', error);
+  }
+}
+
 async function createConsumer() {
   // Check for required environment variables
   const requiredEnvVars = [
@@ -43,6 +70,9 @@ async function createConsumer() {
     tlsValidateHostname: true, // Set to false only for development/testing
   });
 
+  // Store global reference for cleanup
+  globalClient = client;
+
   try {
     // Create a consumer
     const consumer = await client.subscribe({
@@ -52,13 +82,16 @@ async function createConsumer() {
       subscriptionInitialPosition: 'Latest', // Options: 'Latest', 'Earliest'
     });
 
+    // Store global reference for cleanup
+    globalConsumer = consumer;
+
     console.log('Pulsar consumer created successfully');
     console.log('Topic:', process.env.PULSAR_TOPIC);
     console.log('Subscription:', process.env.PULSAR_SUBSCRIPTION);
     console.log('Listening for messages...');
 
     // Start consuming messages
-    while (true) {
+    while (!shouldExit) {
       try {
         const message = await consumer.receive();
         
@@ -77,28 +110,52 @@ async function createConsumer() {
         await consumer.acknowledge(message);
         
       } catch (error) {
-        console.error('Error receiving message:', error);
-        // Wait a bit before trying again
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!shouldExit) {
+          console.error('Error receiving message:', error);
+          // Wait a bit before trying again
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     }
   } catch (error) {
     console.error('Error creating consumer:', error);
   } finally {
     // Clean up resources
-    await client.close();
+    await cleanupResources();
   }
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\nReceived SIGINT, shutting down gracefully...');
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Received SIGINT, shutting down gracefully...');
+  shouldExit = true;
+  await cleanupResources();
+  console.log('👋 Shutdown complete');
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
-  console.log('\nReceived SIGTERM, shutting down gracefully...');
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+  shouldExit = true;
+  await cleanupResources();
+  console.log('👋 Shutdown complete');
   process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', async (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  shouldExit = true;
+  await cleanupResources();
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', async (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  shouldExit = true;
+  await cleanupResources();
+  process.exit(1);
 });
 
 // Start the consumer

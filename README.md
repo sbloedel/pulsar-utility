@@ -83,18 +83,20 @@ This consumer supports OAuth2 providers that implement the Client Credentials fl
 
 ## Features
 
-- Connects to Pulsar broker using OAuth2 authentication
-- Supports SSL/TLS connections
-- Subscribes to a specified topic
-- Continuously listens for messages
-- Displays message details including:
+- **OAuth2 Authentication**: Connects to Pulsar broker using OAuth2 client credentials flow
+- **SSL/TLS Support**: Secure connections with proper certificate validation
+- **Topic Subscription**: Subscribes to a specified topic with configurable options
+- **Continuous Message Processing**: Listens for messages and processes them as they arrive
+- **Detailed Message Display**: Shows comprehensive message information including:
   - Topic name
   - Message payload
-  - Message ID
+  - Message ID  
   - Publish timestamp
-- Acknowledges messages after processing
-- Graceful shutdown handling (Ctrl+C)
-- Environment-based configuration
+- **Message Acknowledgment**: Properly acknowledges processed messages
+- **Graceful Shutdown**: Handles shutdown signals (Ctrl+C) with proper cleanup
+- **Resource Cleanup**: Automatically unsubscribes and closes connections on exit
+- **Error Handling**: Robust error handling with automatic retry logic
+- **Environment-based Configuration**: All settings managed through environment variables
 
 ## Example Output
 
@@ -113,6 +115,14 @@ Received message:
   Message ID: CAAQAw==
   Publish Time: Thu Sep 04 2025 10:30:45 GMT-0700 (PDT)
 ---
+^C
+🛑 Received SIGINT, shutting down gracefully...
+🧹 Cleaning up Pulsar resources...
+📦 Unsubscribing consumer...
+✅ Consumer unsubscribed successfully
+🔌 Closing Pulsar client...
+✅ Pulsar client closed successfully
+👋 Shutdown complete
 ```
 
 ## Subscription Types
