@@ -13,6 +13,7 @@ async function cleanupResources() {
     if (globalConsumer) {
       console.log('📦 Unsubscribing consumer...');
       await globalConsumer.unsubscribe();
+      await globalConsumer.close();
       console.log('✅ Consumer unsubscribed successfully');
       globalConsumer = null;
     }
