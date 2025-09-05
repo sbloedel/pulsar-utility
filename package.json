@@ -5,8 +5,10 @@
   "main": "consumer.js",
   "scripts": {
     "start": "node consumer.js",
-    "consumer": "node consumer.js",
-    "check-env": "node check-env.js"
+    "start:dev": "node consumer.js --env=dev",
+    "start:qa": "node consumer.js --env=qa",
+    "start:stage": "node consumer.js --env=stage",
+    "start:prod": "node consumer.js --env=prod"
   },
   "dependencies": {
     "pulsar-client": "^1.12.0",

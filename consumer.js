@@ -1,5 +1,8 @@
 const Pulsar = require('pulsar-client');
-require('dotenv').config();
+const { loadEnvironmentConfig } = require('./config');
+
+// Load environment-specific configuration
+const config = loadEnvironmentConfig();
 
 // Global references for cleanup
 let globalConsumer = null;
@@ -30,6 +33,16 @@ async function cleanupResources() {
 }
 
 async function createConsumer() {
+  // Display environment information
+  console.log('🚀 Pulsar Consumer Starting');
+  console.log('==========================');
+  console.log(`Environment: ${config.environment}`);
+  console.log(`Config File: ${config.envFile}`);
+  console.log(`Node ENV: ${config.nodeEnv}`);
+  console.log(`Log Level: ${process.env.LOG_LEVEL || 'info'}`);
+  console.log(`Debug Mode: ${process.env.DEBUG_MODE || 'false'}`);
+  console.log('');
+
   // Check for required environment variables
   const requiredEnvVars = [
     'OAUTH2_ISSUER_URL', 
@@ -48,6 +61,8 @@ async function createConsumer() {
     process.exit(1);
   }
 
+  console.debug('All required environment variables are present');
+
   // OAuth2 configuration
   const oauth2Config = {
     type: 'client_credentials', // Grant type
@@ -64,37 +79,32 @@ async function createConsumer() {
   console.log('Audience:', oauth2Config.audience);
 
   // Create a Pulsar client with OAuth2 authentication
-  const client = new Pulsar.Client({
+  globalClient = new Pulsar.Client({
     serviceUrl: process.env.PULSAR_SERVICE_URL,
     authentication: new Pulsar.AuthenticationOauth2(oauth2Config),
     tlsAllowInsecureConnection: false, // Set to true only for development/testing
     tlsValidateHostname: true, // Set to false only for development/testing
   });
 
-  // Store global reference for cleanup
-  globalClient = client;
-
   try {
     // Create a consumer
-    const consumer = await client.subscribe({
+    globalConsumer = await globalClient.subscribe({
       topic: process.env.PULSAR_TOPIC,
       subscription: process.env.PULSAR_SUBSCRIPTION,
       subscriptionType: 'Shared', // Options: 'Exclusive', 'Shared', 'Failover', 'KeyShared'
       subscriptionInitialPosition: 'Latest', // Options: 'Latest', 'Earliest'
     });
 
-    // Store global reference for cleanup
-    globalConsumer = consumer;
-
     console.log('Pulsar consumer created successfully');
     console.log('Topic:', process.env.PULSAR_TOPIC);
     console.log('Subscription:', process.env.PULSAR_SUBSCRIPTION);
+    console.log('Press Ctrl+C to exit');
     console.log('Listening for messages...');
 
     // Start consuming messages
     while (!shouldExit) {
       try {
-        const message = await consumer.receive();
+        const message = await globalConsumer.receive();
         
         // Get message payload and convert to string
         const payload = message.getData().toString();
@@ -108,7 +118,7 @@ async function createConsumer() {
         console.log('---');
 
         // Acknowledge the message
-        await consumer.acknowledge(message);
+        await globalConsumer.acknowledge(message);
         
       } catch (error) {
         if (!shouldExit) {

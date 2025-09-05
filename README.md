@@ -1,6 +1,6 @@
 # Pulsar Consumer Utility
 
-A basic Node.js consumer for Apache Pulsar with OAuth2 authentication that writes message payloads to the console.
+A Node.js consumer for Apache Pulsar with OAuth2 authentication and multi-environment support that writes message payloads to the console.
 
 ## Prerequisites
 
@@ -16,17 +16,27 @@ Install the dependencies:
 npm install
 ```
 
+## Multi-Environment Support
+
+This application supports multiple environments (dev, qa, stage, prod) with separate configuration files (.env.dev, .env.qa, .env.stage, .env.prod)
+
+### Quick Start
+
+```bash
+# Run with development environment
+npm start
+npm run start:dev
+```
+
 ## Configuration
 
-### Environment Setup
+### Environment-Specific Configuration
 
-1. Create an `.env` file with your current configuration
-2. Verify your environment configuration:
-   ```bash
-   npm run check-env
-   ```
-
-### Environment Variables
+The application uses environment-specific `.env` files:
+- .env.dev
+- .env.qa
+- .env.stage
+- .env.prod
 
 All configuration is now handled through environment variables in the `.env` file:
 
@@ -66,20 +76,22 @@ This consumer supports OAuth2 providers that implement the Client Credentials fl
 
 ## Usage
 
-1. **Check your environment configuration** (recommended):
-   ```bash
-   npm run check-env
-   ```
+### Environment-Specific Commands
 
-2. **Run the consumer**:
-   ```bash
-   npm start
-   ```
+```bash
+# Development
+npm run start              # Run consumer with dev config
+npm run start:dev          # Run consumer with dev config
 
-   Or directly with Node.js:
-   ```bash
-   node consumer.js
-   ```
+# QA
+npm run start:qa           # Run consumer with QA config  
+
+# Stage
+npm run start:stage        # Run consumer with stage config
+
+# Production  
+npm run start:prod         # Run consumer with prod config
+```
 
 ## Features
 
